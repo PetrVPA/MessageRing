@@ -14,9 +14,18 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include  # <-- Добавьте include
+
+from mailing import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Подключаем маршруты вашего приложения
+    # Замените 'mailings' на реальное имя папки вашего приложения
+
+    #path('', include('mailing.urls', namespace='mailing')),
+    path('', include('mailing.urls'))
 ]
