@@ -19,13 +19,18 @@
         <tr>
             <td><a href="{% url 'mailing_detail' mailing.pk %}">{{ mailing.message.subject }}</a></td>
             <td>
-                {% if mailing.status == 'created' %}
-                    <span class="badge bg-secondary">{{ mailing.actual_status }}</span>
-                {% elif mailing.status == 'started' %}
-                    <span class="badge bg-success">{{ mailing.actual_status }}</span>
-                {% else %}
-                    <span class="badge bg-danger">{{ mailing.actual_status }}</span>
-                {% endif %}
+    {% if mailing.actual_status == 'Создана' %}
+        <!-- Серый цвет для созданных -->
+        <span class="badge bg-secondary">{{ mailing.actual_status }}</span>
+
+    {% elif mailing.actual_status == 'Запущена' %}
+        <!-- Синий или зеленый цвет для активных (выбери тот, что нравится) -->
+        <span class="badge bg-success">{{ mailing.actual_status }}</span>
+
+    {% else %}
+        <!-- Красный цвет для завершенных -->
+        <span class="badge bg-danger">{{ mailing.actual_status }}</span>
+    {% endif %}
             </td>
             <td>{{ mailing.first_sent_at|default:"-" }}</td>
             <td>{{ mailing.end_at }}</td>
