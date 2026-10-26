@@ -1,0 +1,32 @@
+{% extends 'product_base.html' %}
+
+{% block content %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Почта</th>
+            <th>Полное имя</th>
+            <th>Коментарий</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for recipient in recipients %}
+         <tr>
+            <td><a href="{% url 'recipient_detail' recipient.pk %}">{{ recipient.email }}</a></td>
+
+            <td>{{ recipient.full_name }}</td>
+            <td>{{ recipient.comment }}</td>
+            <td>
+                <a href="{% url 'recipient_update' recipient.pk %}">Ред.</a> |
+                <a href="{% url 'recipient_delete' recipient.pk %}">Удал.</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">Рассылок пока нет.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

@@ -33,6 +33,18 @@ class Mailing(models.Model):
     # Поле статуса из базы данных (оставляем для истории и фильтров в админке)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='created')
 
+    message = models.ForeignKey(
+        'Message',
+        on_delete=models.CASCADE,
+        null=True,  # <--- Разрешаем пустое значение в БД
+        blank=True,  # <--- Разрешаем пустое значение в формах
+        verbose_name="Сообщение"
+    )
+
+    recipients = models.ManyToManyField(
+        'Recipient',
+        verbose_name="Получатели",
+        blank=True) # Разрешаем создавать рассылку без выбора получателей (на этапе теста)
 
     def __str__(self):
         return f"Рассылка: {self.message.subject}"

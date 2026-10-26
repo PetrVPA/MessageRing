@@ -21,16 +21,16 @@ class MailingListView(ListView):
 class MailingCreateView(CreateView):
     model = Mailing
     form_class = MailingForm
-    template_name = 'mailing_form.html'
-    fields = ['message', 'recipients', 'end_at']
+    template_name = 'mailing_edit.html'
+    #fields = ['message', 'recipients', 'end_at']
     success_url = reverse_lazy('mailing_list')
 
 
 class MailingUpdateView(UpdateView):
     model = Mailing
     form_class = MailingForm
-    template_name = 'mailing_form.html'
-    fields = ['message', 'recipients', 'end_at']
+    template_name = 'mailing_edit.html'
+    #fields = ['message', 'recipients', 'end_at']
     success_url = reverse_lazy('mailing_list')
 
 
