@@ -1,0 +1,32 @@
+{% extends 'product_base.html' %}
+
+{% block content %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Тема письма</th>
+            <th>Тело письма</th>
+            <th>Коментарий</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for message in messages %}
+         <tr>
+            <td><a href="{% url 'message_detail' message.pk %}">{{ message.subject }}</a></td>
+
+            <td>{{ message.body }}</td>
+
+            <td>
+                <a href="{% url 'message_update' message.pk %}">Ред.</a> |
+                <a href="{% url 'message_delete' message.pk %}">Удал.</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3">Писем пока нет.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
