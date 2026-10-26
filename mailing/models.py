@@ -1,10 +1,13 @@
+from django import forms
 from django.db import models
 from django.utils import timezone
 
 
+
 class Recipient(models.Model):
     email = models.EmailField(unique=True, verbose_name="Email")
-    full_name = models.CharField(max_length=255, verbose_name="ФИО")
+    full_name = models.CharField(max_length=255, verbose_name="Ф.И.О. строкой")
+    comment =models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.full_name} ({self.email})"
@@ -25,31 +28,13 @@ class Mailing(models.Model):
         ('finished', 'Завершена'),
     ]
 
-    message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='mailings')
-    recipients = models.ManyToManyField(Recipient, related_name='mailings')
-    first_sent_at = models.DateTimeField(null=True, blank=True)
-    end_at = models.DateTimeField()
-
+    start_time = models.DateTimeField(null=True, blank=True)
+    end_time = models.DateTimeField()
     # Поле статуса из базы данных (оставляем для истории и фильтров в админке)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='created')
 
-    @property
-    def actual_status(self):
-        """
-        Динамическое вычисление статуса на основе текущего времени.
-        """
-        now = timezone.now()
-
-        # 1. Если время окончания уже прошло -> Завершена
-        if now > self.end_at:
-            return 'Завершена'
-
-        # 2. Если время не вышло, но письма уже отправлялись -> Запущена
-        if self.first_sent_at:
-            return 'Запущена'
-
-        # 3. Если ничего не произошло -> Создана
-        return 'Создана'
 
     def __str__(self):
         return f"Рассылка: {self.message.subject}"
+
+
