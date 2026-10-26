@@ -36,7 +36,7 @@ class MailingUpdateView(UpdateView):
 
 class MailingDeleteView(DeleteView):
     model = Mailing
-    template_name = 'mailing_confirm_delete.html'
+    template_name = 'mailing_delete.html'
     success_url = reverse_lazy('mailing_list')
 
 
@@ -84,7 +84,7 @@ class DetailRecipients(DetailView):
 class ViewMessage(ListView):
     model = Message
     template_name = 'message_list.html'
-    context_object_name = 'messages'
+    context_object_name = 'recipient_messages'
     ordering = ['subject']
 
 class CreateMessage(CreateView):
