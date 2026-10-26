@@ -39,7 +39,7 @@ class MessageAdmin(admin.ModelAdmin):
 
 @admin.register(Mailing)
 class MailingAdmin(admin.ModelAdmin):
-    list_display = ('message', 'actual_status', 'first_sent_at', 'end_at')
+    list_display = ('status', 'start_time', 'end_time')
     list_filter = ('status',)
 
     # Подключаем действие.
