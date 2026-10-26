@@ -3,6 +3,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
+
+from .forms import MailingForm
 from .models import Mailing, Message, Recipient
 from .services import MailingSender
 
@@ -15,31 +17,28 @@ class MailingListView(ListView):
     context_object_name = 'mailings'
     ordering = ['-id']
 
-    #def get_queryset(self):
-     #   queryset = super().get_queryset()
-        # Обновляем статусы перед выводом (костыль, но для учебного проекта сойдет)
-     #   for mailing in queryset:
-     #       mailing.update_status()
-     #   return queryset
 
 class MailingCreateView(CreateView):
     model = Mailing
+    form_class = MailingForm
     template_name = 'mailing_form.html'
-    # Поля, которые пользователь заполняет вручную.
-    # Статус и first_sent_at система поставит сама.
     fields = ['message', 'recipients', 'end_at']
     success_url = reverse_lazy('mailing_list')
 
+
 class MailingUpdateView(UpdateView):
     model = Mailing
+    form_class = MailingForm
     template_name = 'mailing_form.html'
     fields = ['message', 'recipients', 'end_at']
     success_url = reverse_lazy('mailing_list')
+
 
 class MailingDeleteView(DeleteView):
     model = Mailing
     template_name = 'mailing_confirm_delete.html'
     success_url = reverse_lazy('mailing_list')
+
 
 class MailingDetailView(DetailView):
     model = Mailing
@@ -47,20 +46,66 @@ class MailingDetailView(DetailView):
     context_object_name = 'mailing'
 
 
-class SendMailingView(View):
-    def post(self, request, pk):
-        # 1. Находим рассылку по ID (pk), переданному в URL
-        mailing = get_object_or_404(Mailing, pk=pk)
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        obj.update_status()  # Внутри метода должно быть self.save()
+        return obj
 
-        # 2. Вызываем наш сервисный класс для отправки
-        sender = MailingSender(mailing)
-        success, message = sender.send()
+class ViewRecipients(ListView):
+    model = Recipient
+    template_name = 'recipient_list.html'
+    context_object_name = 'recipients'
+    ordering = ['email']
 
-        # 3. Добавляем сообщение об успехе или ошибке
-        if success:
-            messages.success(request, message)
-        else:
-            messages.error(request, message)
+class CreateRecipients(CreateView):
+    model = Recipient
+    template_name = 'recipient_create.html'
+    fields = ['email', 'full_name', 'comment']  # Обязательно указываем поля!
+    success_url = reverse_lazy('recipient_list')
 
-        # 4. Перенаправляем обратно на страницу деталей этой рассылки
-        return redirect('mailing_detail', pk=mailing.pk)
+class EditRecipients(UpdateView):
+    model = Recipient
+    template_name = 'recipient_update.html'
+    fields = ['email', 'full_name', 'comment']  # Обязательно указываем поля!
+    success_url = reverse_lazy('recipient_list')
+
+class DeleteRecipients(DeleteView):
+    model = Recipient
+    template_name = 'recipient_delete.html'
+    success_url = reverse_lazy('recipient_list')
+
+class DetailRecipients(DetailView):
+    model = Recipient
+    template_name = 'recipient_detail.html'
+    fields = ['email', 'full_name', 'comment']  # Обязательно указываем поля!
+    success_url = reverse_lazy('recipient_list')
+
+
+class ViewMessage(ListView):
+    model = Message
+    template_name = 'message_list.html'
+    context_object_name = 'messages'
+    ordering = ['subject']
+
+class CreateMessage(CreateView):
+    model = Message
+    template_name = 'message_create.html'
+    fields = ['subject', 'body']  # Обязательно указываем поля!
+    success_url = reverse_lazy('message_list')
+
+class EditMessage(UpdateView):
+    model = Message
+    template_name = 'message_update.html'
+    fields = ['subject', 'body']  # Обязательно указываем поля!
+    success_url = reverse_lazy('message_list')
+
+class DeleteMessage(DeleteView):
+    model = Message
+    template_name = 'message_delete.html'
+    success_url = reverse_lazy('recipient_list')
+
+class DetailMessage(DetailView):
+    model = Message
+    template_name = 'message_detail.html'
+    fields = ['subject', 'body']  # Обязательно указываем поля!
+    success_url = reverse_lazy('recipient_list')
