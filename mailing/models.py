@@ -46,6 +46,21 @@ class Mailing(models.Model):
         verbose_name="Получатели",
         blank=True) # Разрешаем создавать рассылку без выбора получателей (на этапе теста)
 
+    def update_status(self):
+        now = timezone.now()
+        # Логика обновления статуса
+        if now < self.start_time:
+            new_status = 'created'
+        elif self.start_time <= now <= self.end_time:
+            new_status = 'started'
+        else:
+            new_status = 'finished'
+
+        # Если статус изменился, сохраняем в базу
+        if self.status != new_status:
+            self.status = new_status
+            self.save()
+
     def __str__(self):
         return f"Рассылка: {self.message.subject}"
 

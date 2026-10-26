@@ -36,18 +36,10 @@
             </p>
         </div>
     </div>
-    {% if mailing.actual_status != 'Завершена' %}
-    <form method="post" action="{% url 'mailing_send' mailing.pk %}" class="mt-3">
-    {% csrf_token %}
-    <!-- Добавим подтверждение через JavaScript, чтобы случайно не нажать -->
-    <button type="submit" class="btn btn-success" onclick="return confirm('Вы уверены, что хотите запустить эту рассылку?');">
-            🚀 Отправить рассылку сейчас
-        </button>
-    </form>
-    {% else %}
-       <p class="text-danger mt-3">Рассылка завершена, отправка невозможна.</p>
-    <button type="button" class="btn btn-secondary" disabled>Отправка недоступна</button>
-    {% endif %}
+
+
+    <p class="text-muted mt-3">Функция запуска еще в разработке...</p>
+
 
     <div class="mt-3">
         <a href="{% url 'mailing_list' %}" class="btn btn-secondary">← Назад к списку</a>

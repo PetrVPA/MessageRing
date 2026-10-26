@@ -2,8 +2,9 @@
 
 {% block content %}
 <h1>Управление рассылками</h1>
+
 <a href="{% url 'mailing_create' %}" class="btn btn-primary mb-3">Создать рассылку</a>
-<a href="{% url 'recipient_list' %}" class="btn btn-primary mb-3">Список пользователей</a>
+<a href="{% url 'recipient_list' %}" class="btn btn-primary mb-3">Список получателей</a>
 <a href="{% url 'message_list' %}" class="btn btn-primary mb-3">Список сообщений</a>
 
 <table class="table">
