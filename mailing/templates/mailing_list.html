@@ -24,15 +24,15 @@
             <td>
     {% if mailing.status == 'created' %}
         <!-- Серый цвет для созданных -->
-        <span class="badge bg-secondary">{{ mailing.get_status_display }}</span>
+        <span class="badge bg-secondary">{{ mailing.get_status_display|default:"Создана" }}</span>
 
     {% elif mailing.status == 'started' %}
         <!-- Синий или зеленый цвет для активных -->
-        <span class="badge bg-success">{{ mailing.get_status_display }}</span>
+        <span class="badge bg-success">{{ mailing.get_status_display|default:"Запущена" }}</span>
 
     {% else %}
         <!-- Красный цвет для завершенных -->
-        <span class="badge bg-danger">{{ mailing.get_status_display }}</span>
+        <span class="badge bg-danger">{{ mailing.get_status_display|default:"Завершена" }}</span>
     {% endif %}
 </td>
             <td>{{ mailing.start_time|default:"-" }}</td>
