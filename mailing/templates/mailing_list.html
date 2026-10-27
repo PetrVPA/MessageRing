@@ -24,13 +24,13 @@
     <tbody>
         {% for mailing in mailings %}
         <td>
-    {% if mailing.status == 'created' %}
+    {% if mailing.status == 'started' %}
         <form action="{% url 'mailing_start' mailing.pk %}" method="post" style="display:inline;">
             {% csrf_token %}
             <button type="submit" class="btn btn-sm btn-success">Запустить</button>
         </form>
     {% else %}
-        <span>В процессе / Завершена</span>
+         <button type="submit" class="btn btn-sm btn-secondary">Рассылка не активна</button>
     {% endif %}
         </td>
         <tr>
