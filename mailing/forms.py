@@ -25,4 +25,7 @@ def clean(self):
     elif start < real_time:
         self.add_error('start_time', 'Время старта не должно быть в прошлом.')
 
+    elif start is None or stop is None:
+        self.add_error('start_time', 'Нужно ввести значение времени.')
+
     return cleaned_data

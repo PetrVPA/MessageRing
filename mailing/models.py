@@ -29,7 +29,7 @@ class Mailing(models.Model):
     ]
 
     start_time = models.DateTimeField(null=True, blank=True)
-    end_time = models.DateTimeField()
+    end_time = models.DateTimeField(null=True, blank=True)
     # Поле статуса из базы данных (оставляем для истории и фильтров в админке)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='created')
 
@@ -48,6 +48,8 @@ class Mailing(models.Model):
 
     def update_status(self):
         now = timezone.now()
+        if self.start_time is None or self.end_time is None:
+            return
         # Логика обновления статуса
         if now < self.start_time:
             new_status = 'created'
@@ -59,7 +61,7 @@ class Mailing(models.Model):
         # Если статус изменился, сохраняем в базу
         if self.status != new_status:
             self.status = new_status
-            self.save()
+            self.save(update_fields=['status'])
 
     def __str__(self):
         return f"Рассылка: {self.message.subject}"
