@@ -7,6 +7,10 @@
 <a href="{% url 'recipient_list' %}" class="btn btn-primary mb-3">Список получателей</a>
 <a href="{% url 'message_list' %}" class="btn btn-primary mb-3">Список сообщений</a>
 
+<div class="alert alert-info">
+    Всего получателей в базе: <strong>{{ total_recipients }}</strong>
+</div>
+
 <table class="table">
     <thead>
         <tr>
@@ -19,6 +23,16 @@
     </thead>
     <tbody>
         {% for mailing in mailings %}
+        <td>
+    {% if mailing.status == 'created' %}
+        <form action="{% url 'mailing_start' mailing.pk %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-success">Запустить</button>
+        </form>
+    {% else %}
+        <span>В процессе / Завершена</span>
+    {% endif %}
+        </td>
         <tr>
             <td><a href="{% url 'mailing_detail' mailing.pk %}">{{ mailing.message.subject }}</a></td>
             <td>

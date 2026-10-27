@@ -6,12 +6,13 @@
 
     <div class="card">
         <div class="card-body">
+            <strong>Тема рассылки:</strong><br>
             <h3 class="card-title">{{ mailing.message.subject }}</h3>
 
             <p class="card-text">
-                <strong>Статус:</strong>
+                <strong>Статус рассылки:</strong>
                 <!-- Используем get_status_display() для красивого вывода -->
-                {{ mailing.status }}
+                {{ mailing.get_status_display }}
             </p>
 
             <p class="card-text">
@@ -37,8 +38,10 @@
         </div>
     </div>
 
-
-    <p class="text-muted mt-3">Функция запуска еще в разработке...</p>
+    <form action="{% url 'mailing_start' mailing.pk %}" method="post">
+    {% csrf_token %} <!-- Обязательно для POST-запросов! -->
+    <button type="submit" class="btn btn-success">Запустить рассылку</button>
+    </form>
 
 
     <div class="mt-3">

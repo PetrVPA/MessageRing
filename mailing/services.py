@@ -1,27 +1,23 @@
+import logging
 from django.core.mail import send_mail
-from django.utils import timezone
 from django.conf import settings
-from .models import Mailing
 
+logger = logging.getLogger(__name__)
 
 class MailingSender:
-    """Класс для управления отправкой рассылки."""
-
-    def __init__(self, mailing_instance):
-        self.mailing = mailing_instance
+    def __init__(self, mailing):
+        self.mailing = mailing
+        self.success_count = 0
+        self.error_count = 0
 
     def send(self):
-        """Основной метод отправки."""
-        # 1. Проверка статуса (нельзя отправить то, что уже завершено)
         if self.mailing.status == 'finished':
             return False, "Рассылка уже завершена."
 
-        # 2. Получаем список email-ов
         recipients = [r.email for r in self.mailing.recipients.all()]
         if not recipients:
             return False, "Нет получателей для отправки."
 
-        # 3. Отправка
         try:
             send_mail(
                 subject=self.mailing.message.subject,
@@ -30,13 +26,11 @@ class MailingSender:
                 recipient_list=recipients,
                 fail_silently=False,
             )
+            self.success_count = len(recipients)
         except Exception as e:
+            self.error_count = len(recipients)
             return False, f"Ошибка отправки: {str(e)}"
 
-        # 4. Обновление статуса модели
         self.mailing.status = 'started'
-        if not self.mailing.first_sent_at:
-            self.mailing.first_sent_at = timezone.now()
         self.mailing.save()
-
-        return True, f"Успешно отправлено {len(recipients)} получателям."
+        return True, f"Успешно отправлено писем: {self.success_count}"
