@@ -9,6 +9,7 @@ from .models import Mailing, Message, Recipient
 from .services import MailingSender
 
 
+
 # --- CRUD для Рассылок ---
 
 class MailingListView(ListView):
@@ -16,6 +17,12 @@ class MailingListView(ListView):
     template_name = 'mailing_list.html'
     context_object_name = 'mailings'
     ordering = ['-id']
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Считаем всех получателей в базе
+        context['total_recipients'] = Recipient.objects.count()
+        return context
 
 
 class MailingCreateView(CreateView):
@@ -44,6 +51,8 @@ class MailingDetailView(DetailView):
     model = Mailing
     template_name = 'mailing_detail.html'
     context_object_name = 'mailing'
+
+
 
 
     def get_object(self, queryset=None):
@@ -109,3 +118,25 @@ class DetailMessage(DetailView):
     template_name = 'message_detail.html'
     fields = ['subject', 'body']  # Обязательно указываем поля!
     success_url = reverse_lazy('recipient_list')
+
+
+class StartMailing(View):
+    def post(self, request, pk):
+        mailing = get_object_or_404(Mailing, pk=pk)
+
+        # 1. Меняем статус на "started", чтобы класс MailingSender понял, что можно отправлять
+        mailing.status = 'started'
+        mailing.save(update_fields=['status'])
+
+        # 2. Запускаем отправку
+        sender = MailingSender(mailing)
+        success, message = sender.send()
+
+        # 3. Выводим сообщение пользователю
+        if success:
+            messages.success(request, "Рассылка успешно запущена и завершена!")
+        else:
+            messages.error(request, f"Ошибка: {message}")
+
+        return redirect('mailing_list')  # Перенаправляем обратно в список
+
