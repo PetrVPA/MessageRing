@@ -22,31 +22,46 @@
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-
+                {% if user.is_authenticated %}
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto">
                         <!-- Ссылки на ваши страницы. Замените имена на свои (name=...) -->
-                        <li class="nav-item">
+                        <li class="nav-item me-3">
                             <a class="nav-link" href="/">Главная</a>
+                            <!--<button type="button" class="nav-link btn btn-link" style="border: none; background: none; padding: 0;" onclick="window.location.href='///';">Главная</button>-->
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item me-3">
                             <!-- Пример ссылки на список рассылок -->
                             <a class="nav-link" href="{% url 'mailing_list' %}">Рассылки</a>
-                        </li>
-                    </ul>
+                            <!--<button type="button" class="nav-link btn btn-link" style="border: none; background: none; padding: 0;" onclick="window.location.href='mailing_list';">Рассылки</button>-->
 
+                        </li>
+                         <li class="nav-item me-3">
+                                <span class="nav-link">Привет, {{ user.name }}</span>
+                            </li>
+                        {% if user.is_superuser %}
+                             <li class="nav-item me-3">
+                                <button type="button" class="nav-link btn btn-link" style="border: none; background: none; padding: 0;" onclick="window.location.href='/admin/';">Админка</button>
+                             </li>
+                        {% endif %}
+                        <li class="nav-item me-3">
+        <form action="{% url 'logout' %}" method="post" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="nav-link btn btn-link" style="border: none; background: none; padding: 0;">Выход</button>
+        </form>
+    </li>
+                    </ul>
+                {% else %}
                     <!-- Блок для авторизации (если нужно) -->
                     <ul class="navbar-nav">
-                        {% if user.is_authenticated %}
+
+
+
                             <li class="nav-item">
-                                <span class="nav-link">Привет, {{ user.username }}</span>
+                                <a class="nav-link" href="{% url 'login' %}">Войти</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="/admin/">Админка</a>
-                            </li>
-                        {% else %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="/admin/">Войти</a>
+                                <a class="nav-link" href="{% url 'registration' %}">Регистрация</a>
                             </li>
                         {% endif %}
                     </ul>

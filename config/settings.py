@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 from pathlib import Path
 import os
 
+from django.urls import reverse_lazy
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'mailing',
+    'gent',
 ]
 
 MIDDLEWARE = [
@@ -69,6 +71,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
@@ -145,3 +148,9 @@ DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER')
 
 TIME_ZONE = 'Europe/Moscow' # Ваш часовой пояс
 USE_TZ = True
+
+AUTH_USER_MODEL = 'gent.Gent'
+
+LOGIN_REDIRECT_URL = reverse_lazy('mailing_list')
+
+LOGIN_URL = '/gentlogin/'
