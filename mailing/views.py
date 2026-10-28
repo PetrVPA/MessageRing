@@ -33,6 +33,11 @@ class MailingListView(ListView):
         context['total_recipients'] = Recipient.objects.count()
         return context
 
+    def get_queryset(self):
+        # Берем базовый queryset и фильтруем по текущему пользователю
+        # self.request.user - это ваш авторизованный пользователь Gent
+        return Mailing.objects.filter(owner=self.request.user)
+
 
 class MailingCreateView(CreateView):
     model = Mailing
@@ -40,6 +45,10 @@ class MailingCreateView(CreateView):
     template_name = 'mailing_edit.html'
     #fields = ['message', 'recipients', 'end_at']
     success_url = reverse_lazy('mailing_list')
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
 
 
 class MailingUpdateView(UpdateView):
@@ -49,17 +58,29 @@ class MailingUpdateView(UpdateView):
     #fields = ['message', 'recipients', 'end_at']
     success_url = reverse_lazy('mailing_list')
 
+    def get_queryset(self):
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
+
 
 class MailingDeleteView(DeleteView):
     model = Mailing
     template_name = 'mailing_delete.html'
     success_url = reverse_lazy('mailing_list')
 
+    def get_queryset(self):
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
+
 
 class MailingDetailView(DetailView):
     model = Mailing
     template_name = 'mailing_detail.html'
     context_object_name = 'mailing'
+
+    def get_queryset(self):
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
 
 
 
@@ -75,11 +96,22 @@ class ViewRecipients(ListView):
     context_object_name = 'recipients'
     ordering = ['email']
 
+    def get_queryset(self):
+        return Recipient.objects.filter(owner=self.request.user)
+
 class CreateRecipients(CreateView):
     model = Recipient
     template_name = 'recipient_create.html'
     fields = ['email', 'full_name', 'comment']  # Обязательно указываем поля!
     success_url = reverse_lazy('recipient_list')
+
+    def get_queryset(self):
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
 
 class EditRecipients(UpdateView):
     model = Recipient
@@ -87,16 +119,28 @@ class EditRecipients(UpdateView):
     fields = ['email', 'full_name', 'comment']  # Обязательно указываем поля!
     success_url = reverse_lazy('recipient_list')
 
+    def get_queryset(self):
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
+
 class DeleteRecipients(DeleteView):
     model = Recipient
     template_name = 'recipient_delete.html'
     success_url = reverse_lazy('recipient_list')
+
+    def get_queryset(self):
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
 
 class DetailRecipients(DetailView):
     model = Recipient
     template_name = 'recipient_detail.html'
     fields = ['email', 'full_name', 'comment']  # Обязательно указываем поля!
     success_url = reverse_lazy('recipient_list')
+
+    def get_queryset(self):
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
 
 
 class ViewMessage(ListView):
@@ -105,11 +149,21 @@ class ViewMessage(ListView):
     context_object_name = 'recipient_messages'
     ordering = ['subject']
 
+    def get_queryset(self):
+        return Message.objects.filter(owner=self.request.user)
+
 class CreateMessage(CreateView):
     model = Message
     template_name = 'message_create.html'
     fields = ['subject', 'body']  # Обязательно указываем поля!
     success_url = reverse_lazy('message_list')
+
+    def form_valid(self, form):
+        # Привязываем текущего авторизованного пользователя
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+
 
 class EditMessage(UpdateView):
     model = Message
@@ -117,16 +171,28 @@ class EditMessage(UpdateView):
     fields = ['subject', 'body']  # Обязательно указываем поля!
     success_url = reverse_lazy('message_list')
 
+    def get_queryset(self):
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
+
 class DeleteMessage(DeleteView):
     model = Message
     template_name = 'message_delete.html'
     success_url = reverse_lazy('recipient_list')
+
+    def get_queryset(self):
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
 
 class DetailMessage(DetailView):
     model = Message
     template_name = 'message_detail.html'
     fields = ['subject', 'body']  # Обязательно указываем поля!
     success_url = reverse_lazy('recipient_list')
+
+    def get_queryset(self):
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
 
 
 class StartMailing(View):
