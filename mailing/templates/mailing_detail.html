@@ -1,4 +1,4 @@
-{% extends 'product_base.html' %} <!-- Укажите имя вашего базового шаблона -->
+{% extends 'product_base.html' %}
 
 {% block content %}
 <div class="container mt-4">
@@ -7,17 +7,16 @@
     <div class="card">
         <div class="card-body">
             <strong>Тема рассылки:</strong><br>
-            <h3 class="card-title">{{ mailing.message.subject }}</h3>
+            <h3 class="card-title">{{ mailing.message.subject|default:"Без сообщения" }}</h3>
 
             <p class="card-text">
                 <strong>Статус рассылки:</strong>
-                <!-- Используем get_status_display() для красивого вывода -->
                 {{ mailing.get_status_display }}
             </p>
 
             <p class="card-text">
                 <strong>Текст сообщения:</strong><br>
-                {{ mailing.message.body|linebreaks }}
+                {{ mailing.message.body|linebreaks|default:"Сообщение не указано." }}
             </p>
 
             <p class="card-text">
@@ -32,17 +31,53 @@
             </p>
 
             <p class="card-text">
-                <strong>Дата первой отправки:</strong> {{ mailing.first_sent_at|date:"d.m.Y H:i" |default:"Не отправлялась" }}<br>
-                <strong>Дата окончания:</strong> {{ mailing.end_at|date:"d.m.Y H:i" }}
+                <strong>Начало рассылки:</strong> {{ mailing.start_time|date:"d.m.Y H:i"|default:"Не указано" }}<br>
+                <strong>Окончание рассылки:</strong> {{ mailing.end_time|date:"d.m.Y H:i"|default:"Не указано" }}
             </p>
         </div>
     </div>
 
-    <form action="{% url 'mailing_start' mailing.pk %}" method="post">
-    {% csrf_token %} <!-- Обязательно для POST-запросов! -->
-    <button type="submit" class="btn btn-success">Запустить рассылку</button>
+    <form action="{% url 'mailing_start' mailing.pk %}" method="post" class="mt-3">
+        {% csrf_token %}
+        {% if mailing.is_active_now %}
+            <button type="submit" class="btn btn-success">Запустить рассылку</button>
+        {% else %}
+            <button type="submit" class="btn btn-outline-secondary">Запустить рассылку</button>
+            <span class="text-muted ms-2">Сейчас рассылка вне разрешённого временного окна.</span>
+        {% endif %}
     </form>
 
+    <h2 class="mt-4">История попыток</h2>
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Дата и время</th>
+                <th>Получатель</th>
+                <th>Статус</th>
+                <th>Ответ сервера</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for attempt in mailing.attempts.all %}
+                <tr>
+                    <td>{{ attempt.attempt_time|date:"d.m.Y H:i:s" }}</td>
+                    <td>{{ attempt.recipient.email|default:"—" }}</td>
+                    <td>
+                        {% if attempt.status == 'success' %}
+                            <span class="badge bg-success">{{ attempt.get_status_display }}</span>
+                        {% else %}
+                            <span class="badge bg-danger">{{ attempt.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ attempt.server_response|default:"—" }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4">Попыток отправки пока не было.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
     <div class="mt-3">
         <a href="{% url 'mailing_list' %}" class="btn btn-secondary">← Назад к списку</a>

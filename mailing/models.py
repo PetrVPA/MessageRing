@@ -83,6 +83,16 @@ class Mailing(models.Model):
             self.status = new_status
             self.save(update_fields=['status'])
 
+    @property
+    def is_active_now(self):
+        """Можно ли запускать рассылку прямо сейчас."""
+        now = timezone.now()
+        return bool(
+            self.start_time
+            and self.end_time
+            and self.start_time <= now <= self.end_time
+        )
+
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -95,6 +105,53 @@ class Mailing(models.Model):
 
 
     def __str__(self):
+        if not self.message_id:
+            return f"Рассылка #{self.pk}"
         return f"Рассылка: {self.message.subject}"
 
 
+class Attempt(models.Model):
+    """История попыток отправки писем по рассылке."""
+
+    STATUS_SUCCESS = 'success'
+    STATUS_FAILED = 'failed'
+    STATUS_CHOICES = [
+        (STATUS_SUCCESS, 'Успешно'),
+        (STATUS_FAILED, 'Не успешно'),
+    ]
+
+    mailing = models.ForeignKey(
+        Mailing,
+        on_delete=models.CASCADE,
+        related_name='attempts',
+        verbose_name='Рассылка',
+    )
+    recipient = models.ForeignKey(
+        Recipient,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='attempts',
+        verbose_name='Получатель',
+    )
+    attempt_time = models.DateTimeField(
+        default=timezone.now,
+        verbose_name='Дата и время попытки',
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        verbose_name='Статус',
+    )
+    server_response = models.TextField(
+        blank=True,
+        verbose_name='Ответ почтового сервера',
+    )
+
+    class Meta:
+        verbose_name = 'Попытка рассылки'
+        verbose_name_plural = 'Попытки рассылок'
+        ordering = ['-attempt_time']
+
+    def __str__(self):
+        return f"{self.mailing} — {self.get_status_display()}"

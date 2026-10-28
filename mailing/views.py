@@ -1,6 +1,8 @@
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView
 
@@ -34,14 +36,9 @@ class MailingListView(ListView):
         return context
 
     def get_queryset(self):
-        user = self.request.user
-
-        # Если пользователь в группе 'Managers' — показываем всё
-        if user.groups.filter(name='Managers').exists():
-            return Mailing.objects.all()
-
-        # Иначе — только его собственные
-        return Mailing.objects.filter(owner=user)
+        # Берем базовый queryset и фильтруем по текущему пользователю
+        # self.request.user - это ваш авторизованный пользователь Gent
+        return Mailing.objects.filter(owner=self.request.user)
 
 
 class MailingCreateView(CreateView):
@@ -64,10 +61,8 @@ class MailingUpdateView(UpdateView):
     success_url = reverse_lazy('mailing_list')
 
     def get_queryset(self):
-        user = self.request.user
-        if user.groups.filter(name='Managers').exists():
-            return Mailing.objects.all()
-        return Mailing.objects.filter(owner=user)
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
 
 
 class MailingDeleteView(DeleteView):
@@ -76,10 +71,8 @@ class MailingDeleteView(DeleteView):
     success_url = reverse_lazy('mailing_list')
 
     def get_queryset(self):
-        user = self.request.user
-        if user.groups.filter(name='Managers').exists():
-            return Mailing.objects.all()
-        return Mailing.objects.filter(owner=user)
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
 
 
 class MailingDetailView(DetailView):
@@ -88,10 +81,10 @@ class MailingDetailView(DetailView):
     context_object_name = 'mailing'
 
     def get_queryset(self):
-        user = self.request.user
-        if user.groups.filter(name='Managers').exists():
-            return Mailing.objects.all()
-        return Mailing.objects.filter(owner=user)
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
+
+
 
 
     def get_object(self, queryset=None):
@@ -106,12 +99,7 @@ class ViewRecipients(ListView):
     ordering = ['email']
 
     def get_queryset(self):
-        user = self.request.user
-
-        if user.groups.filter(name='Managers').exists():
-            return Recipient.objects.all()
-
-        return Recipient.objects.filter(owner=user)
+        return Recipient.objects.filter(owner=self.request.user)
 
 class CreateRecipients(CreateView):
     model = Recipient
@@ -120,10 +108,8 @@ class CreateRecipients(CreateView):
     success_url = reverse_lazy('recipient_list')
 
     def get_queryset(self):
-        user = self.request.user
-        if user.groups.filter(name='Managers').exists():
-            return Mailing.objects.all()
-        return Mailing.objects.filter(owner=user)
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
@@ -136,10 +122,8 @@ class EditRecipients(UpdateView):
     success_url = reverse_lazy('recipient_list')
 
     def get_queryset(self):
-        user = self.request.user
-        if user.groups.filter(name='Managers').exists():
-            return Mailing.objects.all()
-        return Mailing.objects.filter(owner=user)
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
 
 class DeleteRecipients(DeleteView):
     model = Recipient
@@ -147,10 +131,8 @@ class DeleteRecipients(DeleteView):
     success_url = reverse_lazy('recipient_list')
 
     def get_queryset(self):
-        user = self.request.user
-        if user.groups.filter(name='Managers').exists():
-            return Mailing.objects.all()
-        return Mailing.objects.filter(owner=user)
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
 
 class DetailRecipients(DetailView):
     model = Recipient
@@ -159,10 +141,8 @@ class DetailRecipients(DetailView):
     success_url = reverse_lazy('recipient_list')
 
     def get_queryset(self):
-        user = self.request.user
-        if user.groups.filter(name='Managers').exists():
-            return Mailing.objects.all()
-        return Mailing.objects.filter(owner=user)
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
 
 
 class ViewMessage(ListView):
@@ -172,10 +152,7 @@ class ViewMessage(ListView):
     ordering = ['subject']
 
     def get_queryset(self):
-        user = self.request.user
-        if user.groups.filter(name='Managers').exists():
-            return Mailing.objects.all()
-        return Mailing.objects.filter(owner=user)
+        return Message.objects.filter(owner=self.request.user)
 
 class CreateMessage(CreateView):
     model = Message
@@ -197,10 +174,8 @@ class EditMessage(UpdateView):
     success_url = reverse_lazy('message_list')
 
     def get_queryset(self):
-        user = self.request.user
-        if user.groups.filter(name='Managers').exists():
-            return Mailing.objects.all()
-        return Mailing.objects.filter(owner=user)
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
 
 class DeleteMessage(DeleteView):
     model = Message
@@ -208,10 +183,8 @@ class DeleteMessage(DeleteView):
     success_url = reverse_lazy('recipient_list')
 
     def get_queryset(self):
-        user = self.request.user
-        if user.groups.filter(name='Managers').exists():
-            return Mailing.objects.all()
-        return Mailing.objects.filter(owner=user)
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
 
 class DetailMessage(DetailView):
     model = Message
@@ -220,29 +193,41 @@ class DetailMessage(DetailView):
     success_url = reverse_lazy('recipient_list')
 
     def get_queryset(self):
-        user = self.request.user
-        if user.groups.filter(name='Managers').exists():
-            return Mailing.objects.all()
-        return Mailing.objects.filter(owner=user)
+        # Если объект не принадлежит пользователю, Django выдаст 404
+        return Mailing.objects.filter(owner=self.request.user)
 
 
-class StartMailing(View):
+class StartMailing(LoginRequiredMixin, View):
+    login_url = reverse_lazy('login')
+
     def post(self, request, pk):
-        mailing = get_object_or_404(Mailing, pk=pk)
+        # Пользователь может запускать только свои рассылки.
+        mailing = get_object_or_404(Mailing, pk=pk, owner=request.user)
 
-        # 1. Меняем статус на "started", чтобы класс MailingSender понял, что можно отправлять
-        mailing.status = 'started'
-        mailing.save(update_fields=['status'])
-
-        # 2. Запускаем отправку
+        # Проверка времени и отправка выполняются внутри сервиса.
         sender = MailingSender(mailing)
         success, message = sender.send()
 
-        # 3. Выводим сообщение пользователю
         if success:
-            messages.success(request, "Рассылка успешно запущена и завершена!")
+            messages.success(request, message)
         else:
-            messages.error(request, f"Ошибка: {message}")
+            messages.error(request, message)
 
-        return redirect('mailing_list')  # Перенаправляем обратно в список
+        return redirect('mailing_detail', pk=mailing.pk)
 
+class HomeView(TemplateView):
+    template_name = 'mailing_start.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        now = timezone.now()
+
+        context['total_mailings'] = Mailing.objects.count()
+        context['active_mailings'] = Mailing.objects.filter(
+            start_time__lte=now,
+            end_time__gte=now,
+        ).count()
+        context['total_recipients'] = (
+            Recipient.objects.values('email').distinct().count()
+        )
+        return context

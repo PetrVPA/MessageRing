@@ -151,6 +151,8 @@ USE_TZ = True
 
 AUTH_USER_MODEL = 'gent.Gent'
 
-LOGIN_REDIRECT_URL = reverse_lazy('mailing_list')
+
 
 LOGIN_URL = '/gentlogin/'
+
+LOGIN_REDIRECT_URL = reverse_lazy('home')

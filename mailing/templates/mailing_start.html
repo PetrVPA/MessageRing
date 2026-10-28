@@ -1,6 +1,58 @@
 {% extends 'product_base.html' %}
 
 {% block content %}
-<p>Для работе на нашем сайте нужна регистрация</p>
+{% if user.is_authenticated %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1">Главная</h1>
+            <p class="text-muted mb-0">Сводка по сервису рассылок</p>
+        </div>
+        <a href="{% url 'mailing_create' %}" class="btn btn-primary">Создать рассылку</a>
+    </div>
 
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Всего рассылок</h5>
+                    <p class="display-5 mb-0">{{ total_mailings }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-success">
+                <div class="card-body">
+                    <h5 class="card-title">Активных сейчас</h5>
+                    <p class="display-5 mb-0 text-success">{{ active_mailings }}</p>
+                    <small class="text-muted">
+                        Рассылки, у которых текущее время попадает в интервал отправки.
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Уникальных получателей</h5>
+                    <p class="display-5 mb-0">{{ total_recipients }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'mailing_list' %}" class="btn btn-outline-primary">Все рассылки</a>
+        <a href="{% url 'recipient_list' %}" class="btn btn-outline-primary">Получатели</a>
+        <a href="{% url 'message_list' %}" class="btn btn-outline-primary">Сообщения</a>
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <h1 class="mb-3">MessageRing</h1>
+        <p class="lead mb-4">
+            Сервис управления рассылками: клиенты, сообщения, запуск и статистика.
+        </p>
+        <a href="{% url 'login' %}" class="btn btn-primary btn-lg me-2">Войти</a>
+        <a href="{% url 'registration' %}" class="btn btn-outline-primary btn-lg">Зарегистрироваться</a>
+    </div>
+{% endif %}
 {% endblock %}
