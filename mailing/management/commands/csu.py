@@ -1,10 +1,11 @@
 ﻿from django.core.management import BaseCommand
-from users.models import User
+from gent.models import Gent
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        user = User.objects.create(email='meteor@mail.ru')
+        user = Gent.objects.create(email='meteor@mail.ru')
         user.set_password('12345')
+        user.name = 'Петр'
         user.is_active = True
         user.is_staff = True
         user.is_superuser = True

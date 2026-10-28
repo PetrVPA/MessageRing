@@ -7,7 +7,7 @@ from . import views
 
 urlpatterns = [
     # Именно эта строка создает имя 'mailing_list'
-    path('', views.MailingListView.as_view(), name='mailing_list'),
+    path('', views.StartPageView.as_view(), name='mailing_start'),
     path('mailing_list', views.MailingListView.as_view(), name='mailing_list'),
     path('create/', views.MailingCreateView.as_view(), name='mailing_create'),
     path('mailing_detail/<int:pk>/', views.MailingDetailView.as_view(), name='mailing_detail'),

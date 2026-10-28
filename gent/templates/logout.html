@@ -1,0 +1,10 @@
+{% extends 'product_base.html' %}
+
+{% block content %}
+<h2>Вход на сайт</h2>
+<form action="{% url 'logout' %}" method="post" style="display: inline;">
+    {% csrf_token %}
+    <button type="submit" class="nav-link btn btn-link" style="border: none; background: none;">Выход</button>
+</form>
+
+{% endblock %}

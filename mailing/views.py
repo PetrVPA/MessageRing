@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView
 
 from .forms import MailingForm
 from .models import Mailing, Message, Recipient
@@ -11,6 +11,15 @@ from .services import MailingSender
 
 
 # --- CRUD для Рассылок ---
+
+class StartPageView(TemplateView):
+    template_name = 'mailing_start.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        # Если пользователь авторизован, отправляем его на рассылки
+        if request.user.is_authenticated:
+            return redirect('mailing_list')  # или '/mailings/'
+        return super().dispatch(request, *args, **kwargs)
 
 class MailingListView(ListView):
     model = Mailing
