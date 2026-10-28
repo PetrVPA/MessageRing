@@ -38,7 +38,7 @@ class Message(models.Model):
     )
 
     def __str__(self):
-        return f"{self.full_name} ({self.email})"
+        return self.subject
 
 
 class Mailing(models.Model):

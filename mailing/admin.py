@@ -39,10 +39,16 @@ class MessageAdmin(admin.ModelAdmin):
 
 @admin.register(Mailing)
 class MailingAdmin(admin.ModelAdmin):
+    # --- Берем настройки из верхнего варианта ---
     list_display = ('status', 'start_time', 'end_time')
     list_filter = ('status',)
+    actions = [SendMailingAction]  # Ваше действие
 
-    # Подключаем действие.
-    # Обратите внимание: для классов-действий используется запись [Класс.__name__]
-    # или можно создать функцию-обертку, которая вернет класс.
-    actions = [SendMailingAction]
+    # --- Берем фильтрацию из нижнего варианта ---
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        # Суперпользователи и менеджеры видят всё
+        if request.user.is_superuser or request.user.groups.filter(name='Managers').exists():
+            return qs
+        # Обычные пользователи видят только своё
+        return qs.filter(owner=request.user)

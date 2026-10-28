@@ -25,3 +25,4 @@ class RegisterView(CreateView):
         )
 
         return response
+
