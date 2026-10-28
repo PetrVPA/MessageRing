@@ -1,6 +1,8 @@
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView
 
@@ -195,23 +197,37 @@ class DetailMessage(DetailView):
         return Mailing.objects.filter(owner=self.request.user)
 
 
-class StartMailing(View):
+class StartMailing(LoginRequiredMixin, View):
+    login_url = reverse_lazy('login')
+
     def post(self, request, pk):
-        mailing = get_object_or_404(Mailing, pk=pk)
+        # Пользователь может запускать только свои рассылки.
+        mailing = get_object_or_404(Mailing, pk=pk, owner=request.user)
 
-        # 1. Меняем статус на "started", чтобы класс MailingSender понял, что можно отправлять
-        mailing.status = 'started'
-        mailing.save(update_fields=['status'])
-
-        # 2. Запускаем отправку
+        # Проверка времени и отправка выполняются внутри сервиса.
         sender = MailingSender(mailing)
         success, message = sender.send()
 
-        # 3. Выводим сообщение пользователю
         if success:
-            messages.success(request, "Рассылка успешно запущена и завершена!")
+            messages.success(request, message)
         else:
-            messages.error(request, f"Ошибка: {message}")
+            messages.error(request, message)
 
-        return redirect('mailing_list')  # Перенаправляем обратно в список
+        return redirect('mailing_detail', pk=mailing.pk)
 
+class HomeView(TemplateView):
+    template_name = 'mailing_start.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        now = timezone.now()
+
+        context['total_mailings'] = Mailing.objects.count()
+        context['active_mailings'] = Mailing.objects.filter(
+            start_time__lte=now,
+            end_time__gte=now,
+        ).count()
+        context['total_recipients'] = (
+            Recipient.objects.values('email').distinct().count()
+        )
+        return context

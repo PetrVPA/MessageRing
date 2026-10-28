@@ -1,7 +1,7 @@
 
 from django.contrib import admin
 from django.contrib import messages
-from .models import Mailing, Message, Recipient
+from .models import Attempt, Mailing, Message, Recipient
 from .services import MailingSender  # Импортируем наш класс-сервис
 
 
@@ -37,12 +37,28 @@ class MessageAdmin(admin.ModelAdmin):
     list_display = ('subject',)
 
 
+class AttemptInline(admin.TabularInline):
+    model = Attempt
+    extra = 0
+    readonly_fields = ('attempt_time', 'recipient', 'status', 'server_response')
+    can_delete = False
+
+
 @admin.register(Mailing)
 class MailingAdmin(admin.ModelAdmin):
     list_display = ('status', 'start_time', 'end_time')
     list_filter = ('status',)
+    inlines = [AttemptInline]
 
     # Подключаем действие.
     # Обратите внимание: для классов-действий используется запись [Класс.__name__]
     # или можно создать функцию-обертку, которая вернет класс.
     actions = [SendMailingAction]
+
+
+@admin.register(Attempt)
+class AttemptAdmin(admin.ModelAdmin):
+    list_display = ('attempt_time', 'mailing', 'recipient', 'status')
+    list_filter = ('status',)
+    readonly_fields = ('attempt_time', 'mailing', 'recipient', 'status', 'server_response')
+    search_fields = ('recipient__email', 'mailing__message__subject')
