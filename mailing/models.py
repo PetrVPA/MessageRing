@@ -2,12 +2,22 @@ from django import forms
 from django.db import models
 from django.utils import timezone
 
+from django.conf import settings
 
 
 class Recipient(models.Model):
     email = models.EmailField(unique=True, verbose_name="Email")
     full_name = models.CharField(max_length=255, verbose_name="Ф.И.О. строкой")
     comment =models.TextField(null=True, blank=True)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        to_field='email',
+        verbose_name='Владелец',
+        related_name='recipients',  # <-- Уникальное имя
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         return f"{self.full_name} ({self.email})"
@@ -17,8 +27,18 @@ class Message(models.Model):
     subject = models.CharField(max_length=255, verbose_name="Тема письма")
     body = models.TextField(verbose_name="Тело письма")
 
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        to_field='email',
+        verbose_name='Владелец',
+        related_name='messages',  # <-- Оставляем так
+        null=True,
+        blank=True
+    )
+
     def __str__(self):
-        return self.subject
+        return f"{self.full_name} ({self.email})"
 
 
 class Mailing(models.Model):
@@ -62,6 +82,17 @@ class Mailing(models.Model):
         if self.status != new_status:
             self.status = new_status
             self.save(update_fields=['status'])
+
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        to_field='email',
+        verbose_name='Владелец',
+        related_name='mailings',  # <-- Уникальное имя
+        null=True,
+        blank=True
+    )
+
 
     def __str__(self):
         return f"Рассылка: {self.message.subject}"
