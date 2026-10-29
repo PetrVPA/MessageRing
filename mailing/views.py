@@ -38,7 +38,7 @@ class MailingListView(ListView):
         context['total_recipients'] = Recipient.objects.count()
         return context
 
-    @method_decorator(cache_page(60 * 5))
+
     def get_queryset(self):
         # Берем базовый queryset и фильтруем по текущему пользователю
         # self.request.user - это ваш авторизованный пользователь Gent
@@ -55,6 +55,12 @@ class MailingCreateView(CreateView):
     def form_valid(self, form):
         form.instance.owner = self.request.user
         return super().form_valid(form)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        # Передаем текущего пользователя в форму
+        kwargs['user'] = self.request.user
+        return kwargs
 
 
 class MailingUpdateView(UpdateView):
@@ -85,7 +91,7 @@ class MailingDetailView(DetailView):
     template_name = 'mailing_detail.html'
     context_object_name = 'mailing'
 
-    @cache_control(private=True, max_age=300)
+
     def get_queryset(self):
         # Если объект не принадлежит пользователю, Django выдаст 404
         return Mailing.objects.filter(owner=self.request.user)
@@ -103,7 +109,10 @@ class ViewRecipients(ListView):
     context_object_name = 'recipients'
     ordering = ['email']
 
-    @cache_control(private=True, max_age=300)
+    @method_decorator(cache_control(private=True, max_age=30))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def get_queryset(self):
         return Recipient.objects.filter(owner=self.request.user)
 
@@ -149,7 +158,7 @@ class DetailRecipients(DetailView):
     fields = ['email', 'full_name', 'comment']  # Обязательно указываем поля!
     success_url = reverse_lazy('recipient_list')
 
-    @method_decorator(cache_page(60 * 5))
+    @method_decorator(cache_page(60 * 1))
     def get_queryset(self):
         # Если объект не принадлежит пользователю, Django выдаст 404
         return Mailing.objects.filter(owner=self.request.user)
@@ -162,7 +171,10 @@ class ViewMessage(ListView):
     context_object_name = 'recipient_messages'
     ordering = ['subject']
 
-    @method_decorator(cache_page(60 * 5))
+    @method_decorator(cache_control(private=True, max_age=30))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def get_queryset(self):
         return Message.objects.filter(owner=self.request.user)
 
@@ -205,10 +217,14 @@ class DetailMessage(DetailView):
     fields = ['subject', 'body']  # Обязательно указываем поля!
     success_url = reverse_lazy('recipient_list')
 
-    @method_decorator(cache_page(60 * 5))
+    @method_decorator(cache_control(private=True, max_age=300))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    # Неправильно: убираем декоратор отсюда
     def get_queryset(self):
-        # Если объект не принадлежит пользователю, Django выдаст 404
-        return Mailing.objects.filter(owner=self.request.user)
+        # Защита: пользователь может видеть только свои сообщения
+        return Message.objects.filter(owner=self.request.user)
 
 
 class StartMailing(LoginRequiredMixin, View):
@@ -232,7 +248,7 @@ class StartMailing(LoginRequiredMixin, View):
 class HomeView(TemplateView):
     template_name = 'mailing_start.html'
 
-    @method_decorator(cache_page(60 * 5))
+    @method_decorator(cache_page(60 * 1))
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
 
@@ -272,9 +288,18 @@ def mailing_detail_stats(request, mailing_id):
 
 # Вариант 2: Показать вообще все попытки (общая статистика)
 def all_attempts_list(request):
-    attempts = Attempt.objects.all().order_by('-attempt_time')  # Сортируем от новых к старым
+    if not request.user.is_authenticated:
+        attempts = Attempt.objects.none()
+    else:
+        # Фильтруем попытки, где владелец рассылки — текущий пользователь
+        # Связь: Attempt -> Mailing -> owner (Gent)
+        attempts = Attempt.objects.filter(
+            mailing__owner=request.user
+        ).order_by('-attempt_time')
 
     context = {
         'attempts': attempts,
     }
     return render(request, 'stats/all_attempts.html', context)
+
+

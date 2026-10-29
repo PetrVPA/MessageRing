@@ -1,12 +1,25 @@
 from django import forms
 from django.utils import timezone
-from .models import Mailing
+from .models import Mailing, Recipient, Message
 
 
 class MailingForm(forms.ModelForm):
     class Meta:
         model = Mailing
         fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        # Забираем пользователя, которого передадим из views.py
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+        # Фильтруем выпадающий список сообщений
+        if user is not None and 'message' in self.fields:
+            self.fields['message'].queryset = Message.objects.filter(owner=user)
+
+        # Если у вас в этой же форме есть поле recipients, можно отфильтровать и его:
+        if user is not None and 'recipients' in self.fields:
+            self.fields['recipients'].queryset = Recipient.objects.filter(owner=user)
 
 
 def clean(self):

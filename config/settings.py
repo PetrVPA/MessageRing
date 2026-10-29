@@ -155,7 +155,10 @@ AUTH_USER_MODEL = 'gent.Gent'
 
 LOGIN_URL = '/gentlogin/'
 
-LOGIN_REDIRECT_URL = reverse_lazy('home')
+LOGIN_REDIRECT_URL = reverse_lazy('mailing_list')
+LOGOUT_REDIRECT_URL = 'home'
+
+#LOGOUT_REDIRECT_URL = reverse_lazy('gent')
 
 CACHES = {
     'default': {
