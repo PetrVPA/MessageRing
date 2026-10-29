@@ -3,8 +3,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView
+from django.views.decorators.cache import cache_page, cache_control
 
 from .forms import MailingForm
 from .models import Mailing, Message, Recipient, Attempt
@@ -23,6 +25,7 @@ class StartPageView(TemplateView):
             return redirect('mailing_list')  # или '/mailings/'
         return super().dispatch(request, *args, **kwargs)
 
+
 class MailingListView(ListView):
     model = Mailing
     template_name = 'mailing_list.html'
@@ -35,6 +38,7 @@ class MailingListView(ListView):
         context['total_recipients'] = Recipient.objects.count()
         return context
 
+    @method_decorator(cache_page(60 * 5))
     def get_queryset(self):
         # Берем базовый queryset и фильтруем по текущему пользователю
         # self.request.user - это ваш авторизованный пользователь Gent
@@ -60,6 +64,7 @@ class MailingUpdateView(UpdateView):
     #fields = ['message', 'recipients', 'end_at']
     success_url = reverse_lazy('mailing_list')
 
+
     def get_queryset(self):
         # Если объект не принадлежит пользователю, Django выдаст 404
         return Mailing.objects.filter(owner=self.request.user)
@@ -80,11 +85,10 @@ class MailingDetailView(DetailView):
     template_name = 'mailing_detail.html'
     context_object_name = 'mailing'
 
+    @cache_control(private=True, max_age=300)
     def get_queryset(self):
         # Если объект не принадлежит пользователю, Django выдаст 404
         return Mailing.objects.filter(owner=self.request.user)
-
-
 
 
     def get_object(self, queryset=None):
@@ -92,14 +96,17 @@ class MailingDetailView(DetailView):
         obj.update_status()  # Внутри метода должно быть self.save()
         return obj
 
+
 class ViewRecipients(ListView):
     model = Recipient
     template_name = 'recipient_list.html'
     context_object_name = 'recipients'
     ordering = ['email']
 
+    @cache_control(private=True, max_age=300)
     def get_queryset(self):
         return Recipient.objects.filter(owner=self.request.user)
+
 
 class CreateRecipients(CreateView):
     model = Recipient
@@ -134,15 +141,19 @@ class DeleteRecipients(DeleteView):
         # Если объект не принадлежит пользователю, Django выдаст 404
         return Mailing.objects.filter(owner=self.request.user)
 
+
+
 class DetailRecipients(DetailView):
     model = Recipient
     template_name = 'recipient_detail.html'
     fields = ['email', 'full_name', 'comment']  # Обязательно указываем поля!
     success_url = reverse_lazy('recipient_list')
 
+    @method_decorator(cache_page(60 * 5))
     def get_queryset(self):
         # Если объект не принадлежит пользователю, Django выдаст 404
         return Mailing.objects.filter(owner=self.request.user)
+
 
 
 class ViewMessage(ListView):
@@ -151,6 +162,7 @@ class ViewMessage(ListView):
     context_object_name = 'recipient_messages'
     ordering = ['subject']
 
+    @method_decorator(cache_page(60 * 5))
     def get_queryset(self):
         return Message.objects.filter(owner=self.request.user)
 
@@ -186,12 +198,14 @@ class DeleteMessage(DeleteView):
         # Если объект не принадлежит пользователю, Django выдаст 404
         return Mailing.objects.filter(owner=self.request.user)
 
+
 class DetailMessage(DetailView):
     model = Message
     template_name = 'message_detail.html'
     fields = ['subject', 'body']  # Обязательно указываем поля!
     success_url = reverse_lazy('recipient_list')
 
+    @method_decorator(cache_page(60 * 5))
     def get_queryset(self):
         # Если объект не принадлежит пользователю, Django выдаст 404
         return Mailing.objects.filter(owner=self.request.user)
@@ -217,6 +231,11 @@ class StartMailing(LoginRequiredMixin, View):
 
 class HomeView(TemplateView):
     template_name = 'mailing_start.html'
+
+    @method_decorator(cache_page(60 * 5))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
