@@ -17,4 +17,23 @@ urlpatterns = [
         template_name='login.html',
         authentication_form=CustomAuthForm  # <--- Вот сюда передаем форму
     ), name='login'),
+
+    path('password_reset/', auth_views.PasswordResetView.as_view(
+        template_name='registration/password_reset_form.html'
+    ), name='password_reset'),
+
+    # 2. Страница "Письмо отправлено"
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(
+        template_name='registration/password_reset_done.html'
+    ), name='password_reset_done'),
+
+    # 3. Страница ввода нового пароля (сюда ведёт ссылка из письма)
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
+        template_name='registration/password_reset_confirm.html'
+    ), name='password_reset_confirm'),
+
+    # 4. Страница "Пароль успешно изменён"
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
+        template_name='registration/password_reset_complete.html'
+    ), name='password_reset_complete'),
 ]
