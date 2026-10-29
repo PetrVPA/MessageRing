@@ -8,9 +8,9 @@ class Command(BaseCommand):
     '''
     def handle(self, *args, **options):
         # Создаем пользователя
-        user = Gent.objects.create(email='meteor1@mail.ru')
+        user = Gent.objects.create(email='meteor4@mail.ru')
         user.set_password('12345')
-        user.name = 'Федя'
+        user.name = 'Леня'
 
         # Настройки для обычного пользователя
         user.is_active = True

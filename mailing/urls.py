@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-
+from django.contrib.auth import views as auth_views
 
 # Если тут есть строка app_name = 'mailing', закомментируйте её или удалите
 # app_name = 'mailing'
@@ -12,6 +12,8 @@ urlpatterns = [
     path('mailing_detail/<int:pk>/', views.MailingDetailView.as_view(), name='mailing_detail'),
     path('mailing_edit/<int:pk>/', views.MailingUpdateView.as_view(), name='mailing_edit'),
     path('mailing_delete/<int:pk>', views.MailingDeleteView.as_view(), name='mailing_delete'),
+
+    path('gentlogout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
 
 
     path('recipient_list/', views.ViewRecipients.as_view(), name='recipient_list'),
