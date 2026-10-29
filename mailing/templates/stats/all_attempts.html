@@ -1,0 +1,51 @@
+{% extends 'product_base.html' %}
+
+{% block content %}
+    <h1>Статистика всех попыток рассылок</h1>
+
+    <!-- Ссылка на главную страницу или админку (опционально) -->
+    <p><a href="/mailing_list/">Вернуться к списку рассылок</a></p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Дата и время</th>
+                <th>Рассылка</th>
+                <th>Получатель</th>
+                <th>Статус</th>
+                <th>Ответ сервера</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Цикл по всем попыткам, переданным из views.py -->
+            {% for attempt in attempts %}
+            <tr>
+                <td>{{ attempt.attempt_time|date:"d.m.Y H:i:s" }}</td>
+
+                <!-- Название рассылки (связано через ForeignKey) -->
+                <td>{{ attempt.mailing.name|default:"Неизвестно" }}</td>
+
+                <!-- Получатель (может быть пустым, если удален) -->
+                <td>
+                    {% if attempt.recipient %}
+                        {{ attempt.recipient.email }}
+                    {% else %}
+                        <i>Удален</i>
+                    {% endif %}
+                </td>
+
+                <!-- Статус с использованием get_status_display -->
+                <td class="{% if attempt.status == 'success' %}success{% else %}failed{% endif %}">
+                    {{ attempt.get_status_display }}
+                </td>
+
+                <td>{{ attempt.server_response|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center;">Попыток рассылок пока нет.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

@@ -1,13 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView
 
 from .forms import MailingForm
-from .models import Mailing, Message, Recipient
+from .models import Mailing, Message, Recipient, Attempt
 from .services import MailingSender
 
 
@@ -231,3 +231,31 @@ class HomeView(TemplateView):
             Recipient.objects.values('email').distinct().count()
         )
         return context
+
+
+def mailing_detail_stats(request, mailing_id):
+    # Получаем саму рассылку (чтобы показать её название)
+    mailing = get_object_or_404(Mailing, id=mailing_id)
+
+    # Получаем все попытки для этой рассылки.
+    # Благодаря related_name='attempts' в модели, мы можем сделать так:
+    attempts = mailing.attempts.all()
+
+    # Или через фильтр (результат тот же):
+    # attempts = Attempt.objects.filter(mailing=mailing)
+
+    context = {
+        'mailing': mailing,
+        'attempts': attempts,
+    }
+    return render(request, 'stats/mailing_stats.html', context)
+
+
+# Вариант 2: Показать вообще все попытки (общая статистика)
+def all_attempts_list(request):
+    attempts = Attempt.objects.all().order_by('-attempt_time')  # Сортируем от новых к старым
+
+    context = {
+        'attempts': attempts,
+    }
+    return render(request, 'stats/all_attempts.html', context)
