@@ -7,7 +7,7 @@ from . import views
 
 urlpatterns = [
     path('', views.HomeView.as_view(), name='home'),
-    path('mailing_list', views.MailingListView.as_view(), name='mailing_list'),
+    path('mailing_list/', views.MailingListView.as_view(), name='mailing_list'),
     path('create/', views.MailingCreateView.as_view(), name='mailing_create'),
     path('mailing_detail/<int:pk>/', views.MailingDetailView.as_view(), name='mailing_detail'),
     path('mailing_edit/<int:pk>/', views.MailingUpdateView.as_view(), name='mailing_edit'),
@@ -27,4 +27,7 @@ urlpatterns = [
     path('message_detail/<int:pk>/', views.DetailMessage.as_view(), name='message_detail'),
 
     path('mailing/<int:pk>/start/', views.StartMailing.as_view(), name='mailing_start'),
+    #статистика
+    path('mailings/<int:mailing_id>/stats/', views.mailing_detail_stats, name='mailing_stats'),
+    path('stats/all/', views.all_attempts_list, name='all_attempts'),
 ]

@@ -1,0 +1,54 @@
+{% extends 'product_base.html' %}
+
+{% block content %}
+    <h1>Статистика по рассылке: {{ mailing.name }}</h1>
+
+    <!-- Ссылка для возврата или просмотра всех -->
+    <p><a href="{% url 'all_attempts' %}">Посмотреть статистику по всем рассылкам</a></p>
+
+    {% if attempts %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Дата и время</th>
+                    <th>Получатель</th>
+                    <th>Статус</th>
+                    <th>Ответ сервера</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attempt in attempts %}
+                <tr>
+                    <!-- Форматируем дату (например, 29.10.2026 15:30) -->
+                    <td>{{ attempt.attempt_time|date:"d.m.Y H:i" }}</td>
+
+                    <!-- Получатель может быть None (если SET_NULL сработал) -->
+                    <td>
+                        {% if attempt.recipient %}
+                            {{ attempt.recipient.email }}
+                        {% else %}
+                            <i>Удален</i>
+                        {% endif %}
+                    </td>
+
+                    <!-- Используем свойство из модели для красивого отображения статуса -->
+                    <td class="{% if attempt.status == 'success' %}success{% else %}failed{% endif %}">
+                        {{ attempt.get_status_display }}
+                    </td>
+
+                    <!-- Выводим ответ сервера, если он есть -->
+                    <td>
+                        {% if attempt.server_response %}
+                            {{ attempt.server_response }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Попыток отправки для этой рассылки еще не было.</p>
+    {% endif %}
+{% endblock %}
