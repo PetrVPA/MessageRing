@@ -156,3 +156,13 @@ AUTH_USER_MODEL = 'gent.Gent'
 LOGIN_URL = '/gentlogin/'
 
 LOGIN_REDIRECT_URL = reverse_lazy('home')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'OPTIONS': {
+            'protocol': 2,  # <--- Добавьте эту строку
+        },
+    }
+}
